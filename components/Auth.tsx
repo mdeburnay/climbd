@@ -28,65 +28,65 @@ import { useEffect } from "react";
 // };
 
 export default function Auth() {
-  const CLIENT_ID = process.env.EXPO_PUBLIC_CLIENT_ID;
-  const REDIRECT_URL = process.env.EXPO_PUBLIC_REDIRECT_URL;
+	const CLIENT_ID = process.env.EXPO_PUBLIC_CLIENT_ID;
+	const REDIRECT_URL = process.env.EXPO_PUBLIC_REDIRECT_URL;
 
-  WebBrowser.maybeCompleteAuthSession(); // required for web only
-  const redirectTo = makeRedirectUri();
+	WebBrowser.maybeCompleteAuthSession(); // required for web only
+	const redirectTo = makeRedirectUri();
 
-  // Endpoint
-  const discovery = {
-    authorizationEndpoint: "https://www.strava.com/oauth/mobile/authorize",
-    tokenEndpoint: "https://www.strava.com/oauth/token",
-    revocationEndpoint: "https://www.strava.com/oauth/deauthorize",
-  };
+	// Endpoint
+	const discovery = {
+		authorizationEndpoint: "https://www.strava.com/oauth/mobile/authorize",
+		tokenEndpoint: "https://www.strava.com/oauth/token",
+		revocationEndpoint: "https://www.strava.com/oauth/deauthorize",
+	};
 
-  const createSessionFromUrl = async (url: string) => {
-    const { params, errorCode } = QueryParams.getQueryParams(url);
+	const createSessionFromUrl = async (url: string) => {
+		const { params, errorCode } = QueryParams.getQueryParams(url);
 
-    if (errorCode) throw new Error(errorCode);
-    const { access_token, refresh_token } = params;
+		if (errorCode) throw new Error(errorCode);
+		const { access_token, refresh_token } = params;
 
-    if (!access_token) return;
+		if (!access_token) return;
 
-    const { data, error } = await supabase.auth.setSession({
-      access_token,
-      refresh_token,
-    });
-    if (error) throw error;
-    return data.session;
-  };
+		const { data, error } = await supabase.auth.setSession({
+			access_token,
+			refresh_token,
+		});
+		if (error) throw error;
+		return data.session;
+	};
 
-  const [request, response, promptAsync] = useAuthRequest(
-    {
-      clientId: CLIENT_ID,
-      scopes: ["activity:read_all"],
-      redirectUri: REDIRECT_URL,
-    },
-    discovery
-  );
-  // Handle linking into app from email app.
-  const url = Linking.useURL();
-  if (url) createSessionFromUrl(url);
+	const [request, response, promptAsync] = useAuthRequest(
+		{
+			clientId: CLIENT_ID,
+			scopes: ["activity:read_all"],
+			redirectUri: REDIRECT_URL,
+		},
+		discovery
+	);
+	// Handle linking into app from email app.
+	const url = Linking.useURL();
+	if (url) createSessionFromUrl(url);
 
-  useEffect(() => {
-    if (response?.type === "success") {
-      const { code } = response.params;
-    }
-  }, [response]);
+	useEffect(() => {
+		if (response?.type === "success") {
+			const { code } = response.params;
+		}
+	}, [response]);
 
-  return (
-    <Text onPress={() => promptAsync()} style={[styles.login, { flex: 1 }]}>
-      Login
-    </Text>
-  );
+	return (
+		<Text onPress={() => promptAsync()} style={[styles.login, { flex: 1 }]}>
+			Login
+		</Text>
+	);
 }
 
 const styles = StyleSheet.create({
-  login: {
-    fontSize: 20,
-    color: "#FFF",
-    textAlign: "center",
-    textTransform: "uppercase",
-  },
+	login: {
+		fontSize: 20,
+		color: "#FFF",
+		textAlign: "center",
+		textTransform: "uppercase",
+	},
 });
