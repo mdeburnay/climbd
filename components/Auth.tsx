@@ -66,7 +66,7 @@ export default function Auth() {
 		discovery
 	);
 	// Handle linking into app from email app.
-	const url = Linking.useURL();
+	const url = Linking.useLinkingURL();
 	if (url) createSessionFromUrl(url);
 
 	useEffect(() => {
