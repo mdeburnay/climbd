@@ -1,7 +1,7 @@
 {
 	"name": "elevation-calculator",
 	"version": "1.0.0",
-	"main": "node_modules/expo/AppEntry.js",
+	"main": "expo-router/entry",
 	"scripts": {
 		"ts:check": "tsc",
 		"start": "npx expo start",
@@ -18,13 +18,16 @@
 		"date-fns": "^3.5.0",
 		"expo": "^54.0.25",
 		"expo-auth-session": "~7.0.9",
+		"expo-constants": "~18.0.10",
 		"expo-linking": "~8.0.9",
+		"expo-router": "~6.0.15",
 		"expo-status-bar": "~3.0.8",
 		"expo-web-browser": "~15.0.9",
 		"react": "19.1.0",
 		"react-native": "0.81.5",
 		"react-native-inappbrowser-reborn": "^3.7.0",
 		"react-native-safe-area-context": "~5.6.0",
+		"react-native-screens": "~4.16.0",
 		"react-native-url-polyfill": "^2.0.0",
 		"typescript": "~5.9.2"
 	},
