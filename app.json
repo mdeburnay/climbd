@@ -3,6 +3,7 @@
 		"name": "Climbd",
 		"slug": "climbd",
 		"version": "1.0.0",
+		"scheme": "com.climbd",
 		"orientation": "portrait",
 		"icon": "./assets/icon.png",
 		"userInterfaceStyle": "light",
@@ -32,7 +33,7 @@
 				"foregroundImage": "./assets/icon.png",
 				"backgroundColor": "#ffffff"
 			},
-			"package": "com.maximoose776.climbd"
+			"package": "com.climbd"
 		},
 		"web": {
 			"favicon": "./assets/favicon.png"

@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
-import Login from "./screens/Login";
+import { StyleSheet } from "react-native";
+import Login from "../screens/Login";
 
 export default function Page() {
 	return <Login />;

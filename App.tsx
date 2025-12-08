@@ -1,4 +1,4 @@
-import Login from "./app/screens/Login";
+import Login from "./screens/Login";
 
 export default function App() {
 	return <Login />;
