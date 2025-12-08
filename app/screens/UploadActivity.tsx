@@ -20,7 +20,7 @@ import { Input } from "../components/Input";
 import { useEffect, useState } from "react";
 
 // Constants
-import { CURRENT_DATE, CURRENT_TIME } from "../constants";
+import { CURRENT_DATE, CURRENT_TIME } from "../../constants";
 
 export default function UploadActivity() {
 	// State
