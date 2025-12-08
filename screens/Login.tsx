@@ -5,6 +5,7 @@ import { StyleSheet, View, Button, Alert } from "react-native";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
+import { useRouter } from "expo-router";
 
 // Constants
 import { CLIENT_ID } from "../constants";
@@ -16,6 +17,7 @@ import { FunctionsHttpError } from "@supabase/supabase-js";
 WebBrowser.maybeCompleteAuthSession();
 
 export default function Login() {
+	const router = useRouter();
 	const redirectUri = AuthSession.makeRedirectUri({
 		// scheme: "com.climbd",
 		// path: "redirect",
@@ -43,7 +45,6 @@ export default function Login() {
 			const { code } = response.params;
 
 			if (code) {
-				console.log("Code:", code);
 				handleStravaAuth(code);
 			}
 		} else if (response?.type === "error") {
@@ -66,7 +67,8 @@ export default function Login() {
 				return;
 			}
 
-			console.log("Data:", data);
+			// redirect to upload activity screen on success
+			router.navigate("/upload-activity");
 		} catch (error: any) {
 			console.log(error);
 			Alert.alert(
