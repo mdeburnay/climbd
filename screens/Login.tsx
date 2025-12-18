@@ -7,13 +7,13 @@ import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 
 // Constants
 import { CLIENT_ID } from "../constants";
 
 // Utils
 import { supabase } from "../utils/supabase";
-import { FunctionsHttpError } from "@supabase/supabase-js";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -29,7 +29,7 @@ export default function Login() {
 		{
 			clientId: CLIENT_ID,
 			redirectUri: redirectUri,
-			scopes: ["activity:read_all"],
+			scopes: ["activity:write"],
 			responseType: AuthSession.ResponseType.Code,
 
 			extraParams: {
