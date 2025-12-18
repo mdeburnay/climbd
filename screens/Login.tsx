@@ -6,6 +6,7 @@ import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Constants
 import { CLIENT_ID } from "../constants";
@@ -67,6 +68,14 @@ export default function Login() {
 				return;
 			}
 
+			// save data in async storage
+			await AsyncStorage.setItem("strava_access_token", data.access_token);
+			await AsyncStorage.setItem("strava_refresh_token", data.refresh_token);
+			await AsyncStorage.setItem(
+				"strava_expires_at",
+				data.expires_at.toString()
+			);
+
 			// redirect to upload activity screen on success
 			router.navigate("/upload-activity");
 		} catch (error: any) {
@@ -84,8 +93,9 @@ export default function Login() {
 				<StatusBar style="light" />
 				<Button
 					onPress={() => promptAsync()}
-					title="Login with Strava"
+					title="Login"
 					disabled={!request}
+					color="#FFF"
 				/>
 			</View>
 		</SafeAreaView>
