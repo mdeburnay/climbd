@@ -1,6 +1,5 @@
 // Packages
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
 import {
 	StyleSheet,
 	Keyboard,
@@ -69,6 +68,21 @@ export default function UploadActivity() {
 		setDate(CURRENT_DATE);
 		setTime(CURRENT_TIME);
 		setTitle("");
+	};
+
+	const setActivityDate = (date: string) => {
+		if (date.length > 10) return;
+		setDate(date);
+	};
+
+	const setActivityDuration = (duration: string) => {
+		if (duration.length > 8) return;
+		setDuration(duration);
+	};
+
+	const setActivityTime = (time: string) => {
+		if (time.length > 4) return;
+		setTime(time);
 	};
 
 	const uploadActivityToSupabase = async (
@@ -158,7 +172,7 @@ export default function UploadActivity() {
 					>
 						<View style={styles.titleContainer}>
 							<View style={{ flex: 1 }} />
-							<Text style={[styles.title, { flex: 1 }]}>Climbd</Text>
+							<Text style={styles.title}>Climbd</Text>
 						</View>
 
 						<ScrollView
@@ -179,17 +193,17 @@ export default function UploadActivity() {
 								<Input
 									placeholder="Duration (hh:mm:ss)"
 									value={duration}
-									onChange={setDuration}
+									onChange={setActivityDuration}
 								/>
 								<Input
 									placeholder="Date (dd/mm/yyyy)"
 									value={date}
-									onChange={setDate}
+									onChange={setActivityDate}
 								/>
 								<Input
 									placeholder="Time (hh:mm)"
 									value={time}
-									onChange={setTime}
+									onChange={setActivityTime}
 								/>
 								<Input
 									placeholder="Incline (%)"
@@ -212,7 +226,6 @@ export default function UploadActivity() {
 								title="Reset"
 								onPress={() => reset()}
 							/>
-							<StatusBar style="light" />
 						</ScrollView>
 					</KeyboardAvoidingView>
 				</TouchableWithoutFeedback>
@@ -237,5 +250,6 @@ const styles = StyleSheet.create({
 		fontSize: 34,
 		color: "#FFF",
 		textAlign: "center",
+		flex: 1,
 	},
 });

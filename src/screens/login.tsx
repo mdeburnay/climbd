@@ -1,6 +1,6 @@
 // Packages
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StyleSheet, View, Button, Alert } from "react-native";
+import { View, Button, Alert } from "react-native";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
@@ -87,7 +87,7 @@ export default function LoginScreen() {
 
 	return (
 		<SafeAreaView style={{ backgroundColor: "#000", flex: 1 }}>
-			<View style={styles.container}>
+			<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
 				<Button
 					onPress={() => promptAsync()}
 					title="Login"
@@ -97,15 +97,3 @@ export default function LoginScreen() {
 		</SafeAreaView>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	title: {
-		fontSize: 24,
-		color: "#FFF",
-	},
-});
