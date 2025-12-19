@@ -17,7 +17,7 @@ import { supabase } from "../utils/supabase";
 
 WebBrowser.maybeCompleteAuthSession();
 
-export default function Login() {
+export default function LoginScreen() {
 	const router = useRouter();
 	const redirectUri = AuthSession.makeRedirectUri({
 		// scheme: "com.climbd",
