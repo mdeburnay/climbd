@@ -1,5 +1,5 @@
 // Screen
-import Login from "../screens/Login";
+import Login from "../screens/login";
 
 export default function LoginScreen() {
 	return <Login />;
