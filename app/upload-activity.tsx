@@ -12,6 +12,9 @@ import {
 	ScrollView,
 	View,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 
 // Components
 import { Input } from "../components/Input";
@@ -21,6 +24,21 @@ import { useEffect, useState } from "react";
 
 // Constants
 import { CURRENT_DATE, CURRENT_TIME } from "../constants";
+
+// Utils
+import { supabase } from "../utils/supabase";
+
+type Activity = {
+	name: string;
+	type: string;
+	start_date_local: string;
+	elapsed_time: number;
+	description: string;
+	distance: number;
+	trainer: number;
+	commute: number;
+	total_elevation_gain: number;
+};
 
 export default function UploadActivity() {
 	// State
@@ -50,11 +68,53 @@ export default function UploadActivity() {
 		setTitle("");
 	};
 
-	const uploadRunToStrava = () => {
-		// Fetch access token
-		// Fetch athlete details
-		// Fetch activity details
-		// Upload activity
+	const uploadRunToStrava = async () => {
+		// check if access token is valid
+		const accessToken = await AsyncStorage.getItem("strava_access_token");
+		if (!accessToken) {
+			router.navigate("/login");
+		}
+
+		const expiresAt = await AsyncStorage.getItem("strava_expires_at");
+		const currentTime = Date.now() / 1000;
+		if (parseInt(expiresAt) < currentTime) {
+			await AsyncStorage.removeItem("strava_access_token");
+			await AsyncStorage.removeItem("strava_expires_at");
+			router.navigate("/login");
+		}
+
+		// Convert date from dd/mm/yyyy to yyyy-mm-dd for ISO 8601 format
+		const [day, month, year] = date.split("/");
+		const isoDate = `${year}-${month}-${day}`;
+
+		// create activity
+		const activity: Activity = {
+			name: title,
+			type: "Run",
+			distance: Number(distance) * 1000,
+			elapsed_time: duration
+				.split(":")
+				.reduce((acc, curr) => acc * 60 + Number(curr), 0),
+			description: "Test activity",
+			trainer: 1,
+			commute: 0,
+			start_date_local: `${isoDate}T${time}:00.000Z`,
+			total_elevation_gain: Number(elevation),
+		};
+
+		// upload activity
+		const { data, error } = await supabase.functions.invoke("upload", {
+			headers: {
+				"x-strava-access-token": accessToken,
+			},
+			body: activity,
+		});
+
+		if (error && error instanceof FunctionsHttpError) {
+			const errorMessage = await error.context.json();
+			console.log("Upload activity function returned an error", errorMessage);
+			return;
+		}
 	};
 
 	return (
@@ -110,7 +170,7 @@ export default function UploadActivity() {
 									onChange={setElevation}
 								/>
 							</View>
-							<Button title="Upload" onPress={() => console.log("Upload")} />
+							<Button title="Upload" onPress={() => uploadRunToStrava()} />
 							<Button title="Reset" onPress={() => reset()} />
 							<StatusBar style="light" />
 						</ScrollView>

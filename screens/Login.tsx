@@ -42,6 +42,31 @@ export default function Login() {
 	);
 
 	useEffect(() => {
+		const checkExistingExpiryToken = async () => {
+			try {
+				const hasExistingExpiryToken = await AsyncStorage.getItem(
+					"strava_expires_at"
+				);
+				if (hasExistingExpiryToken) {
+					const expiryToken = parseInt(hasExistingExpiryToken);
+					const currentTime = Date.now() / 1000;
+
+					if (expiryToken < currentTime) {
+						await AsyncStorage.removeItem("strava_refresh_token");
+						await AsyncStorage.removeItem("strava_access_token");
+						await AsyncStorage.removeItem("strava_expires_at");
+					} else {
+						router.navigate("/upload-activity");
+					}
+				}
+			} catch (error) {
+				console.log(error);
+			}
+		};
+		checkExistingExpiryToken();
+	}, [request]);
+
+	useEffect(() => {
 		if (response?.type === "success") {
 			const { code } = response.params;
 
