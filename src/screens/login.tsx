@@ -1,12 +1,10 @@
 // Packages
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
 import { StyleSheet, View, Button, Alert } from "react-native";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 
 // Constants
@@ -14,6 +12,7 @@ import { CLIENT_ID } from "../constants";
 
 // Utils
 import { supabase } from "../utils/supabase";
+import { setStravaTokens } from "../utils/stravaAuth";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -41,46 +40,6 @@ export default function LoginScreen() {
 		}
 	);
 
-	useEffect(() => {
-		const checkExistingExpiryToken = async () => {
-			try {
-				const hasExistingExpiryToken = await AsyncStorage.getItem(
-					"strava_expires_at"
-				);
-				if (hasExistingExpiryToken) {
-					const expiryToken = parseInt(hasExistingExpiryToken);
-					const currentTime = Date.now() / 1000;
-
-					if (expiryToken < currentTime) {
-						await AsyncStorage.removeItem("strava_refresh_token");
-						await AsyncStorage.removeItem("strava_access_token");
-						await AsyncStorage.removeItem("strava_expires_at");
-					} else {
-						router.navigate("/upload-activity");
-					}
-				}
-			} catch (error) {
-				console.log(error);
-			}
-		};
-		checkExistingExpiryToken();
-	}, [request]);
-
-	useEffect(() => {
-		if (response?.type === "success") {
-			const { code } = response.params;
-
-			if (code) {
-				handleStravaAuth(code);
-			}
-		} else if (response?.type === "error") {
-			Alert.alert(
-				"Authentication Error",
-				response.error?.message || "Failed to authenticate with Strava"
-			);
-		}
-	}, [response]);
-
 	const handleStravaAuth = async (code: string) => {
 		try {
 			const { data, error } = await supabase.functions.invoke("auth", {
@@ -94,10 +53,9 @@ export default function LoginScreen() {
 			}
 
 			// save data in async storage
-			await AsyncStorage.setItem("strava_access_token", data.access_token);
-			await AsyncStorage.setItem("strava_refresh_token", data.refresh_token);
-			await AsyncStorage.setItem(
-				"strava_expires_at",
+			await setStravaTokens(
+				data.access_token,
+				data.refresh_token,
 				data.expires_at.toString()
 			);
 
@@ -112,15 +70,28 @@ export default function LoginScreen() {
 		}
 	};
 
+	useEffect(() => {
+		if (response?.type === "success") {
+			const { code } = response.params;
+
+			if (code) {
+				handleStravaAuth(code);
+			}
+		} else if (response?.type === "error") {
+			Alert.alert(
+				"Failed to login to Climbd",
+				response.error?.message || "Failed to login to Climbd"
+			);
+		}
+	}, [response]);
+
 	return (
 		<SafeAreaView style={{ backgroundColor: "#000", flex: 1 }}>
 			<View style={styles.container}>
-				<StatusBar style="light" />
 				<Button
 					onPress={() => promptAsync()}
 					title="Login"
 					disabled={!request}
-					color="#FFF"
 				/>
 			</View>
 		</SafeAreaView>

@@ -1,5 +1,5 @@
 // Screen
-import UploadActivity from "../screens/upload-activity";
+import UploadActivity from "../screens/UploadActivity";
 
 export default function UploadActivityScreen() {
 	return <UploadActivity />;

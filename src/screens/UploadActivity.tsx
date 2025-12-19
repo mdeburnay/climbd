@@ -5,19 +5,19 @@ import {
 	StyleSheet,
 	Keyboard,
 	TouchableWithoutFeedback,
-	Pressable,
 	Text,
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
 	View,
+	Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 
 // Components
 import { Input } from "../components/Input";
+import { Button } from "../components/Button";
 
 // Hooks
 import { useEffect, useState } from "react";
@@ -27,6 +27,8 @@ import { CURRENT_DATE, CURRENT_TIME } from "../constants";
 
 // Utils
 import { supabase } from "../utils/supabase";
+import { clearStravaTokens, getStravaTokens } from "../utils/stravaAuth";
+import { isStravaTokenExpired } from "../utils/stravaHelpers";
 
 type Activity = {
 	name: string;
@@ -49,6 +51,7 @@ export default function UploadActivity() {
 	const [date, setDate] = useState<string>(CURRENT_DATE);
 	const [time, setTime] = useState<string>(CURRENT_TIME);
 	const [title, setTitle] = useState<string>("");
+	const [isUploading, setIsUploading] = useState<boolean>(false);
 
 	// Calculate metres climbed when distance or incline changes
 	useEffect(() => {
@@ -68,26 +71,43 @@ export default function UploadActivity() {
 		setTitle("");
 	};
 
-	const uploadRunToStrava = async () => {
-		// check if access token is valid
-		const accessToken = await AsyncStorage.getItem("strava_access_token");
-		if (!accessToken) {
-			router.navigate("/login");
-		}
+	const uploadActivityToSupabase = async (
+		activity: Activity,
+		accessToken: string
+	) => {
+		setIsUploading(true);
+		try {
+			const { error } = await supabase.functions.invoke("upload", {
+				headers: {
+					"x-strava-access-token": accessToken,
+				},
+				body: activity,
+			});
 
-		const expiresAt = await AsyncStorage.getItem("strava_expires_at");
-		const currentTime = Date.now() / 1000;
-		if (parseInt(expiresAt) < currentTime) {
-			await AsyncStorage.removeItem("strava_access_token");
-			await AsyncStorage.removeItem("strava_expires_at");
-			router.navigate("/login");
-		}
+			if (error && error instanceof FunctionsHttpError) {
+				const errorMessage = await error.context.json();
+				console.log("Upload activity function returned an error", errorMessage);
+				Alert.alert(
+					"There was an issue uploading your activity.",
+					errorMessage.message
+				);
+				setIsUploading(false);
+				return;
+			}
 
+			Alert.alert("Activity uploaded successfully!");
+		} catch (e) {
+			Alert.alert("There was an issue uploading your activity.");
+		} finally {
+			setIsUploading(false);
+		}
+	};
+
+	const generateActivity = () => {
 		// Convert date from dd/mm/yyyy to yyyy-mm-dd for ISO 8601 format
 		const [day, month, year] = date.split("/");
 		const isoDate = `${year}-${month}-${day}`;
 
-		// create activity
 		const activity: Activity = {
 			name: title,
 			type: "Run",
@@ -102,19 +122,31 @@ export default function UploadActivity() {
 			total_elevation_gain: Number(elevation),
 		};
 
-		// upload activity
-		const { data, error } = await supabase.functions.invoke("upload", {
-			headers: {
-				"x-strava-access-token": accessToken,
-			},
-			body: activity,
-		});
+		return activity;
+	};
 
-		if (error && error instanceof FunctionsHttpError) {
-			const errorMessage = await error.context.json();
-			console.log("Upload activity function returned an error", errorMessage);
+	const uploadRunToStrava = async () => {
+		// check if access token is valid
+		const { accessToken, expiresAt } = await getStravaTokens();
+
+		if (!accessToken || !expiresAt) {
+			await clearStravaTokens();
+			router.navigate("/login");
 			return;
 		}
+
+		// check if token is expired
+		const isExpired = await isStravaTokenExpired(expiresAt);
+		if (isExpired) {
+			Alert.alert("Token expired", "Please login again");
+			await clearStravaTokens();
+			router.navigate("/login");
+			return;
+		}
+
+		const activity = generateActivity();
+
+		await uploadActivityToSupabase(activity, accessToken);
 	};
 
 	return (
@@ -170,8 +202,16 @@ export default function UploadActivity() {
 									onChange={setElevation}
 								/>
 							</View>
-							<Button title="Upload" onPress={() => uploadRunToStrava()} />
-							<Button title="Reset" onPress={() => reset()} />
+							<Button
+								disabled={isUploading}
+								title="Upload"
+								onPress={() => uploadRunToStrava()}
+							/>
+							<Button
+								disabled={isUploading}
+								title="Reset"
+								onPress={() => reset()}
+							/>
 							<StatusBar style="light" />
 						</ScrollView>
 					</KeyboardAvoidingView>
@@ -188,9 +228,6 @@ const styles = StyleSheet.create({
 	inputContainer: {
 		paddingBottom: 140,
 	},
-	button: {
-		padding: 10,
-	},
 	titleContainer: {
 		flexDirection: "row",
 		alignItems: "center",
@@ -201,23 +238,4 @@ const styles = StyleSheet.create({
 		color: "#FFF",
 		textAlign: "center",
 	},
-	text: {
-		fontSize: 20,
-		color: "#FFF",
-	},
 });
-
-const Button = ({ onPress, title }) => {
-	return (
-		<Pressable style={styles.button} onPress={onPress}>
-			<Text
-				style={[
-					styles.text,
-					{ textAlign: "center", textTransform: "uppercase" },
-				]}
-			>
-				{title}
-			</Text>
-		</Pressable>
-	);
-};
